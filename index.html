@@ -925,18 +925,19 @@
   // Tracks whether the current SSO flow originated from the sign-up screen.
   let ssoFromSignup = false;
 
-  // ─── URL flow params — lets testers share direct flow links ───
-  // Append ?flow=password|google|apple|idme|new to start a specific flow
-  (function applyFlowParam() {
-    const flow = new URLSearchParams(location.search).get('flow');
-    const map = {
-      password: () => { forcedConnection = 'password'; },
-      google:   () => { forcedConnection = 'google'; },
-      apple:    () => { forcedConnection = 'apple'; },
-      idme:     () => { forcedConnection = 'idme'; },
-      new:      () => { forcedConnection = 'new'; },
-    };
-    if (flow && map[flow]) map[flow]();
+  // ─── URL state params — shareable flow links ───
+  // ?state_1 = brand new user
+  // ?state_2 = returning user (password)
+  // ?state_3 = returning user (Google)
+  // ?state_4 = returning user (Apple)
+  // ?state_5 = returning user (ID.me)
+  (function applyStateParam() {
+    const params = new URLSearchParams(location.search);
+    if (params.has('state_1')) { forcedConnection = 'new'; }
+    else if (params.has('state_2')) { forcedConnection = 'password'; }
+    else if (params.has('state_3')) { forcedConnection = 'google'; }
+    else if (params.has('state_4')) { forcedConnection = 'apple'; }
+    else if (params.has('state_5')) { forcedConnection = 'idme'; }
   })();
 
   // ─── Show demo controls only with ?demo=1 in the URL ───
