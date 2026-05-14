@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — The Philadelphia Inquirer</title>
+<style>
+  /* — Inquirer brand font (loaded from Inquirer's CDN) — */
+  @font-face {
+    font-family: 'Grot10';
+    font-style: normal;
+    font-weight: 400;
+    src: url('https://media.inquirer.com/fonts/Grot10-Regular-webfont.woff') format('woff');
+    font-display: swap;
+  }
+
+  /* — Exact tokens from production CSS dump — */
+  :root {
+    --primary: #1a6aff;
+    --primary-hover: #124ab2;
+    --error: #E11B22;
+    --success: #005836;
+    --text: #222222;
+    --light-text: #595760;
+    --input-text: #595760;
+    --input-border: #848b8b;
+    --link: #1a6aff;
+    --shadow: 0 12px 40px rgba(0,0,0,0.12);
+    --radius: 4px;
+    --radius-card: 8px;
+  }
+
+  * { box-sizing: border-box; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Grot10', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, sans-serif;
+    /* Top 1/3 white, bottom 2/3 gray — hard separation line, fixed
+       to viewport so the card always overlays the boundary. */
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff 0%,
+        #ffffff 33.3333%,
+        #f3f4f6 33.3333%,
+        #f3f4f6 100%
+      );
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ─── Card stack ───────────────────────────── */
+  .stage {
+    width: 400px; max-width: 100%;
+    position: relative;
+  }
+  .card {
+    background: #fff;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow);
+    padding: 32px;
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+  }
+  .card.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    position: relative;
+  }
+
+  .logo {
+    display: block; margin: 0 auto 16px;
+    height: 24px;
+  }
+  h1 {
+    font-size: 16px; font-weight: 400;
+    text-align: center; margin: 0 0 24px;
+    color: var(--text);
+  }
+
+  /* ─── Banner ───────────────────────────────── */
+  .banner {
+    background: var(--error); color: #fff;
+    padding: 10px 14px; border-radius: var(--radius);
+    margin-bottom: 16px; font-size: 14px;
+    display: none;
+    animation: bannerIn 0.25s ease;
+  }
+  .banner.show { display: block; }
+  .banner.success { background: var(--success); }
+  @keyframes bannerIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── Field ────────────────────────────────── */
+  .field { margin-bottom: 16px; }
+  .field .req { color: var(--error); }
+  .field input {
+    width: 100%; height: 52px;
+    padding: 14px 16px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius);
+    font: inherit; font-size: 16px;
+    color: var(--input-text);
+    background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,106,255, 0.15);
+  }
+  .field input[disabled] {
+    background: #f4f4f4; color: var(--light-text); cursor: not-allowed;
+  }
+  .field.error input {
+    border-color: var(--error); border-width: 2px;
+  }
+  .field.error input:focus {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(208,14,23,0.15);
+  }
+
+  /* ─── Floating labels ──────────────────────── */
+  .input-wrap { position: relative; }
+  .input-wrap label {
+    position: absolute;
+    top: 50%; left: 12px;
+    transform: translateY(-50%);
+    font-size: 14px; color: var(--light-text);
+    pointer-events: none;
+    background: #fff; padding: 0 4px;
+    transition: top 0.15s ease, transform 0.15s ease, font-size 0.15s ease, color 0.15s ease;
+    line-height: 1; margin: 0;
+  }
+  .input-wrap label .req { color: inherit; }
+  .input-wrap input::placeholder { color: transparent; }
+  .input-wrap input:focus ~ label,
+  .input-wrap input:not(:placeholder-shown) ~ label {
+    top: 0; transform: translateY(-50%);
+    font-size: 11px; color: var(--primary);
+  }
+  .field.error .input-wrap label { color: var(--error); }
+  .field.error .input-wrap input:focus ~ label,
+  .field.error .input-wrap input:not(:placeholder-shown) ~ label { color: var(--error); }
+  .field .error-msg {
+    display: none; align-items: center; gap: 6px;
+    color: var(--error); font-size: 14px; margin-top: 6px;
+  }
+  .field.error .error-msg { display: flex; }
+  .field .error-msg::before {
+    content: '!'; flex-shrink: 0;
+    background: var(--error); color: #fff;
+    width: 16px; height: 16px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+
+  /* ─── Password field with show/hide ────────── */
+  .password-wrap { position: relative; }
+  .password-toggle {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px;
+    background: transparent; border: none; border-radius: 50%;
+    cursor: pointer; color: #5C677D; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, background 0.15s;
+  }
+  .password-toggle:hover {
+    color: var(--primary);
+    background: rgba(26,106,255, 0.08);
+  }
+  .password-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  .password-toggle svg {
+    width: 18px; height: 14px;
+    display: block;
+  }
+  .password-toggle .icon-hide { display: none; }
+  .password-toggle[aria-checked="true"] .icon-show { display: none; }
+  .password-toggle[aria-checked="true"] .icon-hide { display: block; }
+
+  /* Tooltip */
+  .password-toggle .tooltip {
+    position: absolute; right: 0; bottom: calc(100% + 6px);
+    background: #1f2937; color: #fff;
+    padding: 6px 10px; border-radius: 4px;
+    font-size: 12px; white-space: nowrap;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+  }
+  .password-toggle .tooltip::after {
+    content: ''; position: absolute;
+    top: 100%; right: 14px;
+    border: 5px solid transparent;
+    border-top-color: #1f2937;
+  }
+  .password-toggle:hover .tooltip,
+  .password-toggle:focus-visible .tooltip { opacity: 1; }
+  .password-toggle[aria-checked="true"] .tooltip-show { display: none; }
+  .password-toggle:not([aria-checked="true"]) .tooltip-hide { display: none; }
+
+  /* ─── Buttons ──────────────────────────────── */
+  button { font-family: inherit; }
+  .btn-primary {
+    width: 100%; height: 52px;
+    background: var(--primary); color: #fff;
+    border: 1px solid var(--primary); border-radius: var(--radius);
+    font-size: 16px; font-weight: 400;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-secondary {
+    width: 100%; height: 52px;
+    background: #fff; color: var(--input-text);
+    border: 1px solid var(--input-border); border-radius: var(--radius);
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: #f8f8f9; }
+  .btn-secondary svg { width: 20px; height: 20px; }
+
+  /* ─── Divider ──────────────────────────────── */
+  .divider {
+    display: flex; align-items: center;
+    margin: 16px 0;
+    color: var(--light-text); font-size: 14px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; border-bottom: 1px solid var(--input-border);
+  }
+  .divider span { padding: 0 12px; }
+
+  /* ─── Links ────────────────────────────────── */
+  .forgot, .signup-link, .legal {
+    text-align: center; font-size: 14px; color: var(--text);
+    margin-top: 16px;
+  }
+  .forgot { margin: 16px 0; }
+  .legal { font-size: 13px; color: var(--light-text); margin-top: 12px; }
+  a {
+    color: var(--link); font-weight: 700; text-decoration: none;
+  }
+  a:hover { text-decoration: underline; }
+  .legal a { font-weight: 400; }
+
+  /* ─── Email confirmation on password card ──── */
+  /* Identifier-first second step: email shown as text only,
+     not re-entered as an input. */
+  .email-confirmation {
+    font-size: 14px;
+    color: var(--light-text);
+    text-align: center;
+    margin: -8px 0 20px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .email-confirmation strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* ─── Subhead used on SSO sign-in card ──────── */
+  .subhead {
+    font-size: 14px; color: var(--light-text);
+    text-align: center; margin: 0 0 24px;
+    line-height: 1.4;
+  }
+  .subhead strong { color: var(--text); font-weight: 700; }
+
+  /* ─── ID.me official sign-in button ─────────── */
+  /* The button is a complete pre-styled component (border, logo,
+     and "Continue with ID.me" text are all baked into the SVG),
+     so we strip our usual btn-secondary styling and let the SVG
+     fill the slot. */
+  .btn-idme {
+    display: block; width: 100%;
+    background: transparent; border: none; padding: 0;
+    margin-bottom: 8px; cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 0.15s, transform 0.05s;
+  }
+  .btn-idme svg {
+    display: block; width: 100%; height: auto;
+    max-height: 52px;
+  }
+  .btn-idme:hover { opacity: 0.8; }
+  .btn-idme:active { transform: translateY(1px); }
+  .btn-idme:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* ─── SSO mock card (provider redirect simulation) ─── */
+  /* Visually frames the card like a popped-out provider window
+     so user testers understand they've "left" Inquirer for the IdP.
+     No real OAuth — Approve takes you to success, Cancel goes back. */
+  .sso-mock-frame {
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius);
+    margin: 0 0 16px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .sso-mock-frame .url-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border-bottom: 1px solid var(--input-border);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 12px; color: #6b7280;
+  }
+  .sso-mock-frame .url-bar .lock {
+    width: 12px; height: 12px;
+    color: #16a34a;
+    flex-shrink: 0;
+  }
+  .sso-mock-frame .url-bar .url {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sso-mock-frame .body {
+    padding: 24px 20px;
+    text-align: center;
+  }
+  .sso-mock-frame .provider-mark {
+    width: 40px; height: 40px;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sso-mock-frame .provider-mark svg,
+  .sso-mock-frame .provider-mark img {
+    width: 100%; height: 100%;
+  }
+  .sso-mock-frame .provider-headline {
+    font-size: 16px; color: var(--text);
+    margin: 0 0 6px;
+  }
+  .sso-mock-frame .account-line {
+    font-size: 13px; color: var(--light-text);
+    margin: 0 0 16px;
+    word-break: break-all;
+  }
+  .sso-mock-frame .scope-list {
+    text-align: left;
+    background: #f9fafb;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--light-text);
+    line-height: 1.5;
+  }
+  .sso-mock-frame .scope-list strong { color: var(--text); }
+  .sso-mock-disclaimer {
+    font-size: 12px; color: #6b7280;
+    text-align: center; margin: 0 0 12px;
+    font-style: italic;
+  }
+
+  /* ─── Success card ─────────────────────────── */
+  .success-card { text-align: center; }
+  .success-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--success); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin: 8px auto 16px;
+  }
+  .success-card h2 {
+    margin: 0 0 8px; font-size: 20px; font-weight: 400;
+  }
+  .success-card p {
+    margin: 0 0 20px; color: var(--light-text); font-size: 14px;
+  }
+
+  /* ─── Security warning banner (for user testing) ─ */
+  .warn-banner {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: #fef9c3; color: #713f12;
+    border-bottom: 1px solid #fde047;
+    padding: 8px 40px 8px 16px;
+    text-align: center; font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    z-index: 99;
+    line-height: 1.4;
+  }
+  .warn-banner.hide { display: none; }
+  .warn-banner button {
+    position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+    background: transparent; border: none; cursor: pointer;
+    color: #713f12; font-size: 18px; padding: 4px 8px;
+    line-height: 1;
+  }
+  .warn-banner button:hover { color: #422006; }
+
+  /* ─── Proctor toggle (subtle, in-session demo access) ─ */
+  /* A tiny, low-contrast dot in the bottom-left corner.
+     Long-press (600ms) toggles the demo panel during a session
+     without revealing demo mode to the participant. */
+  .proctor-toggle {
+    position: fixed; bottom: 12px; left: 12px;
+    width: 16px; height: 16px;
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0; margin: 0;
+    z-index: 97;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  }
+  .proctor-toggle:hover {
+    background: rgba(0, 0, 0, 0.12);
+    border-color: rgba(0, 0, 0, 0.3);
+  }
+  .proctor-toggle.pressing {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(0.95);
+  }
+  .proctor-toggle::after {
+    content: ''; display: block;
+    width: 4px; height: 4px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    margin: 5px auto;
+    transition: background 0.2s;
+  }
+  .proctor-toggle:hover::after { background: rgba(0, 0, 0, 0.7); }
+  .proctor-toggle.pressing::after { background: #fff; }
+
+  /* ─── Demo panel (only visible with ?demo=1 OR via proctor toggle) ─ */
+  .demo-panel {
+    display: none;
+    position: fixed; top: 16px; right: 16px;
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    width: 240px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    overflow: hidden;
+    z-index: 100;
+  }
+  .demo-panel summary {
+    cursor: pointer; padding: 10px 14px;
+    background: #1f2937; color: #fff;
+    font-weight: 600; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .demo-panel summary::-webkit-details-marker { display: none; }
+  .demo-panel summary::after {
+    content: '▾'; transition: transform 0.2s;
+  }
+  .demo-panel[open] summary::after { transform: rotate(180deg); }
+  .demo-panel .body {
+    padding: 12px;
+    max-height: 70vh; overflow-y: auto;
+  }
+  .demo-panel h4 {
+    margin: 8px 0 4px; font-size: 11px; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .demo-panel h4:first-child { margin-top: 0; }
+  .demo-panel button {
+    display: flex; flex-direction: column; align-items: flex-start;
+    width: 100%; text-align: left;
+    padding: 8px 10px; margin: 2px 0;
+    background: #f3f4f6; border: 1px solid transparent;
+    border-radius: 6px; cursor: pointer;
+    font: inherit; font-size: 12px; color: #111827;
+  }
+  .demo-panel button:hover { background: #e5e7eb; }
+  .demo-panel .btn-title {
+    font-weight: 600; color: #111827;
+  }
+  .demo-panel .btn-desc {
+    font-size: 11px; color: #6b7280;
+    margin-top: 2px; font-weight: 400;
+  }
+  /* Highlight the demo-panel button matching the currently visible card. */
+  .demo-panel button.active-screen {
+    background: #1f2937;
+    color: #fff;
+    border-color: #1f2937;
+  }
+  .demo-panel button.active-screen:hover { background: #1f2937; }
+  .demo-panel button.active-screen .btn-title,
+  .demo-panel button.active-screen .btn-desc { color: #fff; }
+  .demo-panel .hint {
+    font-size: 11px; color: #6b7280; margin-top: 8px;
+    padding-top: 8px; border-top: 1px solid #e5e7eb;
+  }
+  .demo-panel code {
+    background: #e5e7eb; padding: 1px 4px; border-radius: 3px; font-size: 11px;
+  }
+  .btn-url {
+    display: inline-block; margin-top: 4px;
+    font-size: 10px; color: #6b7280;
+    font-family: monospace; letter-spacing: 0;
+  }
+
+
+  @media (max-width: 600px) {
+    body { padding: 16px 8px; }
+    .card { padding: 24px 20px; }
+    h1 { font-size: 15px; margin-bottom: 20px; }
+    .field input { font-size: 16px; } /* prevent iOS focus-zoom */
+    .btn-primary, .btn-secondary { height: 48px; font-size: 15px; }
+
+    /* Demo panel slides up from bottom instead of top-right —
+       doesn't cover the form, easier to thumb-tap */
+    .demo-panel {
+      top: auto; bottom: 0; right: 0; left: 0;
+      width: 100%; border-radius: 12px 12px 0 0;
+      max-height: 60vh;
+    }
+    .demo-panel summary { padding: 12px 16px; font-size: 13px; }
+    .demo-panel .body { padding: 14px 16px; max-height: calc(60vh - 48px); }
+    .demo-panel button { padding: 10px 12px; font-size: 14px; }
+  }
+  @media (max-width: 380px) {
+    body { padding: 12px 4px; }
+    .card { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Security warning (for user testing) ─── -->
+<div class="warn-banner" id="warn-banner">
+  This is a design demo — please don't enter any real personal info (no real email addresses, names, or passwords). Any made-up text works.
+  <button type="button" aria-label="Dismiss" onclick="document.getElementById('warn-banner').classList.add('hide')">×</button>
+</div>
+
+<!-- ─── Stage ─────────────────────────────────── -->
+<div class="stage" id="stage">
+
+  <!-- ─── Card 1: Sign in (email) ─── -->
+  <section class="card active" id="card-signin" aria-label="Sign in">
+    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <h1>Sign in or create an account</h1>
+
+    <div class="banner" data-banner="signin" role="alert" aria-live="polite"></div>
+
+    <form id="form-email" novalidate>
+      <div class="field" id="email-field">
+        <div class="input-wrap">
+          <input type="text" id="email" name="email" placeholder=" "
+            autocomplete="email" autocapitalize="none" spellcheck="false" aria-required="true">
+          <label for="email">Email address <span class="req" aria-hidden="true">*</span></label>
+        </div>
+        <div class="error-msg" id="email-error"></div>
+      </div>
+      <button type="submit" class="btn-primary">Continue</button>
+    </form>
+
+    <div class="divider"><span>OR</span></div>
+
+    <button type="button" class="btn-secondary" data-mock="google">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.5 12.27a10.6 10.6 0 0 0-.16-1.84H12v3.49h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.55c2.08-1.92 3.28-4.74 3.28-7.73z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.99 7.28-2.68l-3.56-2.76c-.98.66-2.24 1.06-3.72 1.06-2.86 0-5.29-1.93-6.15-4.53H2.18v2.84A11 11 0 0 0 12 23z" fill="#34A853"/>
+        <path d="M5.85 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.67-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.07l3.67 2.84C6.71 7.31 9.14 5.38 12 5.38z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+    <button type="button" class="btn-secondary" data-mock="apple">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000">
+        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+      </svg>
+      Continue with Apple
+    </button>
+    <button type="button" class="btn-idme" data-mock="idme" aria-label="Continue with ID.me">
+      <img src="idme-button.svg" alt="Continue with ID.me" style="display:block;width:100%;height:auto;max-height:52px;">
+    </button>
+
+    <div class="signup-link">
+      Don't have an account? <a href="#" data-go="signup">Sign up</a>
+    </div>
+  </section>
+
+  <!-- ─── Card 2: Password ─── -->
+  <section class="card" id="card-password" aria-label="Enter password">
+    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <h1>Enter your password to log in</h1>
+
+    <div class="banner" data-banner="password" role="alert" aria-live="polite"></div>
+
+    <p class="email-confirmation">
+      Signing in as <strong id="email-readonly-display"></strong><br>
+      <a href="#" data-go="signin">Use a different email</a>
+    </p>
+
+    <form id="form-password" novalidate>
+      <div class="field" id="password-field">
+        <div class="input-wrap">
+          <input type="password" id="password" name="password" placeholder=" "
+            autocomplete="current-password" autocapitalize="none" spellcheck="false" aria-required="true">
+          <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+          <button type="button" class="password-toggle" id="password-toggle"
+            role="switch" aria-checked="false" aria-label="Show password">
+            <span class="tooltip tooltip-show">Show password</span>
+            <span class="tooltip tooltip-hide">Hide password</span>
+            <svg class="icon-show" viewBox="0 0 18 13" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="currentColor" d="M9 12c3.13 0 5.732-1.788 7.856-5.5C14.732 2.788 12.13 1 9 1S3.268 2.788 1.144 6.5C3.268 10.212 5.87 12 9 12zM9 0c3.667 0 6.667 2.167 9 6.5-2.333 4.333-5.333 6.5-9 6.5s-6.667-2.167-9-6.5C2.333 2.167 5.333 0 9 0zm0 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm0 1a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+            </svg>
+            <svg class="icon-hide" viewBox="0 0 18 15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="currentColor" d="M12.148 5.969a3.5 3.5 0 0 1-4.68 4.68l.768-.768a2.5 2.5 0 0 0 3.145-3.145l.767-.767zM5.82 12.297c.993.47 2.052.703 3.18.703 3.13 0 5.732-1.788 7.856-5.5-.837-1.463-1.749-2.628-2.738-3.501l.708-.708C15.994 4.337 17.052 5.74 18 7.5c-2.333 4.333-5.333 6.5-9 6.5a8.294 8.294 0 0 1-3.926-.957l.746-.746zM15.89.813L2.313 14.39a.5.5 0 0 1-.667-.744L3.393 11.9C2.138 10.837 1.007 9.37 0 7.5 2.333 3.167 5.333 1 9 1c1.51 0 2.907.367 4.19 1.102L15.147.146a.5.5 0 0 1 .744.667zm-3.436 2.026A7.315 7.315 0 0 0 9 2C5.87 2 3.268 3.788 1.144 7.5c.9 1.572 1.884 2.798 2.959 3.69l1.893-1.893a3.5 3.5 0 0 1 4.801-4.801l1.657-1.657zm-2.396 2.395a2.5 2.5 0 0 0-3.324 3.324l3.324-3.324z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="error-msg" id="password-error"></div>
+      </div>
+      <button type="submit" class="btn-primary">Log in</button>
+
+      <div class="forgot">
+        <a href="#" data-mock="forgot">Don't remember your password?</a>
+      </div>
+    </form>
+  </section>
+
+  <!-- ─── Card: SSO sign-in (dynamic per provider) ─── -->
+  <section class="card" id="card-sso" aria-label="Sign in with provider">
+    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <h1 id="sso-heading">Welcome back</h1>
+    <p class="subhead">
+      Your account is linked to <strong id="sso-provider-name">[Provider]</strong>. Continue below to sign in to The Philadelphia Inquirer.
+    </p>
+    <div id="sso-button-slot"></div>
+    <div class="forgot">
+      <a href="#" data-go="signin">Use a different email</a>
+    </div>
+  </section>
+
+  <!-- ─── Card: Mock OAuth redirect (Auth0-style provider sign-in simulation) ─── -->
+  <!-- Auth0 docs: when a user clicks an SSO button, they're redirected to the
+       provider's consent screen, then back via the callback URL. This card
+       simulates that step — visible-only, no real OAuth call. -->
+  <section class="card" id="card-sso-mock" aria-label="Provider sign-in (mock)">
+    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <div class="sso-mock-frame">
+      <div class="url-bar">
+        <svg class="lock" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M4 7V5a4 4 0 1 1 8 0v2h.5A1.5 1.5 0 0 1 14 8.5v5A1.5 1.5 0 0 1 12.5 15h-9A1.5 1.5 0 0 1 2 13.5v-5A1.5 1.5 0 0 1 3.5 7H4zm1 0h6V5a3 3 0 0 0-6 0v2z"/>
+        </svg>
+        <span class="url" id="sso-mock-url">accounts.provider.com</span>
+      </div>
+      <div class="body">
+        <div class="provider-mark" id="sso-mock-mark"></div>
+        <p class="provider-headline">Sign in to <strong id="sso-mock-provider">[Provider]</strong> to continue to The Philadelphia Inquirer</p>
+        <p class="account-line" id="sso-mock-email">[email]</p>
+        <div class="scope-list">
+          The Philadelphia Inquirer wants to:
+          <br>• Access your <strong id="sso-mock-scope-1">name and email address</strong>
+          <br>• Verify your <strong id="sso-mock-scope-2">account ownership</strong>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn-primary" data-mock="sso-approve">Allow</button>
+    <div class="forgot">
+      <a href="#" data-go="signin">Cancel</a>
+    </div>
+  </section>
+
+  <!-- ─── Card 3: Create account (brand new user) ─── -->
+  <section class="card" id="card-signup" aria-label="Create account">
+    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <h1>Sign Up for The Philadelphia Inquirer</h1>
+
+    <div class="banner" data-banner="signup" role="alert" aria-live="polite"></div>
+
+    <form id="form-signup" novalidate>
+      <div class="field" id="signup-email-field">
+        <div class="input-wrap">
+          <input type="text" id="signup-email" name="email" placeholder=" "
+            autocomplete="email" autocapitalize="none" spellcheck="false" aria-required="true">
+          <label for="signup-email">Email address <span class="req" aria-hidden="true">*</span></label>
+        </div>
+        <div class="error-msg" id="signup-email-error"></div>
+      </div>
+      <div class="field" id="signup-password-field">
+        <div class="input-wrap">
+          <input type="password" id="signup-password" name="password" placeholder=" "
+            autocomplete="new-password" autocapitalize="none" spellcheck="false" aria-required="true">
+          <label for="signup-password">Create password <span class="req" aria-hidden="true">*</span></label>
+          <button type="button" class="password-toggle" id="signup-password-toggle"
+            role="switch" aria-checked="false" aria-label="Show password">
+            <span class="tooltip tooltip-show">Show password</span>
+            <span class="tooltip tooltip-hide">Hide password</span>
+            <svg class="icon-show" viewBox="0 0 18 13" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="currentColor" d="M9 12c3.13 0 5.732-1.788 7.856-5.5C14.732 2.788 12.13 1 9 1S3.268 2.788 1.144 6.5C3.268 10.212 5.87 12 9 12zM9 0c3.667 0 6.667 2.167 9 6.5-2.333 4.333-5.333 6.5-9 6.5s-6.667-2.167-9-6.5C2.333 2.167 5.333 0 9 0zm0 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm0 1a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>
+            </svg>
+            <svg class="icon-hide" viewBox="0 0 18 15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="currentColor" d="M12.148 5.969a3.5 3.5 0 0 1-4.68 4.68l.768-.768a2.5 2.5 0 0 0 3.145-3.145l.767-.767zM5.82 12.297c.993.47 2.052.703 3.18.703 3.13 0 5.732-1.788 7.856-5.5-.837-1.463-1.749-2.628-2.738-3.501l.708-.708C15.994 4.337 17.052 5.74 18 7.5c-2.333 4.333-5.333 6.5-9 6.5a8.294 8.294 0 0 1-3.926-.957l.746-.746zM15.89.813L2.313 14.39a.5.5 0 0 1-.667-.744L3.393 11.9C2.138 10.837 1.007 9.37 0 7.5 2.333 3.167 5.333 1 9 1c1.51 0 2.907.367 4.19 1.102L15.147.146a.5.5 0 0 1 .744.667zm-3.436 2.026A7.315 7.315 0 0 0 9 2C5.87 2 3.268 3.788 1.144 7.5c.9 1.572 1.884 2.798 2.959 3.69l1.893-1.893a3.5 3.5 0 0 1 4.801-4.801l1.657-1.657zm-2.396 2.395a2.5 2.5 0 0 0-3.324 3.324l3.324-3.324z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="error-msg" id="signup-password-error"></div>
+      </div>
+      <button type="submit" class="btn-primary">Continue</button>
+    </form>
+
+    <div class="divider"><span>OR</span></div>
+
+    <button type="button" class="btn-secondary" data-mock="google">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.5 12.27a10.6 10.6 0 0 0-.16-1.84H12v3.49h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.55c2.08-1.92 3.28-4.74 3.28-7.73z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.99 7.28-2.68l-3.56-2.76c-.98.66-2.24 1.06-3.72 1.06-2.86 0-5.29-1.93-6.15-4.53H2.18v2.84A11 11 0 0 0 12 23z" fill="#34A853"/>
+        <path d="M5.85 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.67-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.07l3.67 2.84C6.71 7.31 9.14 5.38 12 5.38z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+    <button type="button" class="btn-secondary" data-mock="apple">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000">
+        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+      </svg>
+      Continue with Apple
+    </button>
+    <button type="button" class="btn-idme" data-mock="idme" aria-label="Continue with ID.me">
+      <img src="idme-button.svg" alt="Continue with ID.me" style="display:block;width:100%;height:auto;max-height:52px;">
+    </button>
+
+    <div class="signup-link">
+      Already have an account? <a href="#" data-go="signin">Log in</a>
+    </div>
+  </section>
+
+
+  <!-- ─── Card 4: Success ─── -->
+  <section class="card success-card" id="card-success" aria-label="Signed in">
+    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <div class="success-icon">✓</div>
+    <h2 id="success-msg">You're signed in</h2>
+  </section>
+
+</div>
+
+<!-- ─── Proctor demo toggle (long-press 600ms to activate) ─── -->
+<button type="button"
+        class="proctor-toggle"
+        id="proctor-toggle"
+        aria-label="Toggle demo controls (proctor only)"
+        title="Long-press to open demo controls"></button>
+
+<!-- ─── Demo panel ──────────────────────────────── -->
+<details class="demo-panel" id="demo-panel">
+  <summary>Demo controls</summary>
+  <div class="body">
+
+    <h4>Test scenarios</h4>
+    <button data-trigger="flow-unrecognized">
+      <span class="btn-title">1. Brand new user</span>
+      <span class="btn-desc">Use: <strong>unrecognized-email@test.com</strong><br>Starts at email screen, routes to sign-up</span>
+    </button>
+    <button data-trigger="flow-password-user">
+      <span class="btn-title">2. Returning user — password</span>
+      <span class="btn-desc">Use: <strong>recognized-user@test.com</strong><br>Email → password two-step flow</span>
+    </button>
+    <button data-trigger="flow-google-user">
+      <span class="btn-title">3. Returning user — Google</span>
+      <span class="btn-desc">Use: <strong>google-user@test.com</strong><br>Starts at email screen. In real flow, user would enter Google credentials if not already logged in.</span>
+    </button>
+    <button data-trigger="flow-apple-user">
+      <span class="btn-title">4. Returning user — Apple</span>
+      <span class="btn-desc">Use: <strong>apple-user@test.com</strong><br>Starts at email screen. In real flow, user would enter Apple credentials if not already logged in.</span>
+    </button>
+    <button data-trigger="flow-idme-user">
+      <span class="btn-title">5. Returning user — ID.me</span>
+      <span class="btn-desc">Use: <strong>idme-user@test.com</strong><br>Starts at email screen. In real flow, user would enter ID.me credentials if not already logged in.</span>
+    </button>
+
+    <h4>Error states</h4>
+    <button data-trigger="empty-email">
+      <span class="btn-title">Empty email</span>
+      <span class="btn-desc">Submits with no email entered</span>
+    </button>
+    <button data-trigger="empty-password">
+      <span class="btn-title">Empty password</span>
+      <span class="btn-desc">Submits with no password entered</span>
+    </button>
+    <button data-trigger="wrong-password">
+      <span class="btn-title">Wrong password</span>
+      <span class="btn-desc">Password field shows error state</span>
+    </button>
+
+    <h4>Jump to screen</h4>
+    <button data-go="signin">Sign in (email)</button>
+    <button data-go="password">Enter password</button>
+    <button data-go="signup">Create account</button>
+    <button data-trigger="demo-success">Signed-in success</button>
+
+    <h4>Reset</h4>
+    <button data-trigger="reset">Clear all errors + start over</button>
+
+  </div>
+</details>
+
+<script>
+  // ─── Show success homepage with user's email ───
+  function goSuccess(email, isNew) {
+    const el = document.getElementById('success-email');
+    if (el) el.textContent = email || 'subscriber@email.com';
+    const msg = document.getElementById('success-msg');
+    if (msg) msg.textContent = isNew ? 'Thank you for registering with the Inquirer.' : 'You\'re signed in';
+    showCard('success');
+  }
+
+  // ─── Constants ─────────────────────────────────
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Per PRD: identifier-first auth looks up the user's connection type
+  // (password / Google / Apple / ID.me) and routes to the matching second step.
+  // For the prototype, this map simulates that lookup.
+  const RECOGNIZED_USERS = {
+    // Password (email/database) accounts
+    'recognized-user@test.com': 'password',
+    // SSO accounts
+    'google-user@test.com': 'google',
+    'apple-user@test.com': 'apple',
+    'idme-user@test.com': 'idme',
+  };
+  function getConnection(email) {
+    return RECOGNIZED_USERS[(email || '').toLowerCase().trim()] || null;
+  }
+
+  // Tracks the connection type for the email currently in flight.
+  // null = unrecognized.
+  let currentConnection = null;
+
+  // Override for demo scenarios that need to force a specific routing
+  // regardless of what email the participant types. Reset after one use.
+  let forcedConnection = null;
+
+  // Tracks whether the current SSO flow originated from the sign-up screen.
+  let ssoFromSignup = false;
+
+  // ─── URL flow params — lets testers share direct flow links ───
+  // Append ?flow=password|google|apple|idme|new to start a specific flow
+  (function applyFlowParam() {
+    const flow = new URLSearchParams(location.search).get('flow');
+    const map = {
+      password: () => { forcedConnection = 'password'; },
+      google:   () => { forcedConnection = 'google'; },
+      apple:    () => { forcedConnection = 'apple'; },
+      idme:     () => { forcedConnection = 'idme'; },
+      new:      () => { forcedConnection = 'new'; },
+    };
+    if (flow && map[flow]) map[flow]();
+  })();
+
+  // ─── Show demo controls only with ?demo=1 in the URL ───
+  // Default URL = clean prototype for user testing
+  // ?demo=1 URL  = adds the Demo Controls panel for stakeholder demos & QA
+  if (new URLSearchParams(location.search).get('demo') === '1') {
+    document.getElementById('demo-panel').style.display = 'block';
+  }
+
+  // ─── Proctor toggle: long-press 600ms to show/hide demo panel ───
+  // Lets a test proctor open the panel mid-session without revealing
+  // the URL trick to the participant. Single clicks do nothing —
+  // requires intentional long-press to prevent accidental activation.
+  (function wireProctorToggle() {
+    const btn = document.getElementById('proctor-toggle');
+    let pressTimer = null;
+    function startPress(e) {
+      if (e) e.preventDefault();
+      btn.classList.add('pressing');
+      pressTimer = setTimeout(() => {
+        btn.classList.remove('pressing');
+        pressTimer = null;
+        const panel = document.getElementById('demo-panel');
+        const shown = panel.style.display === 'block';
+        if (shown) {
+          panel.style.display = 'none';
+          panel.removeAttribute('open');
+        } else {
+          panel.style.display = 'block';
+          panel.setAttribute('open', '');
+        }
+      }, 600);
+    }
+    function cancelPress() {
+      btn.classList.remove('pressing');
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    }
+    btn.addEventListener('mousedown', startPress);
+    btn.addEventListener('mouseup', cancelPress);
+    btn.addEventListener('mouseleave', cancelPress);
+    btn.addEventListener('touchstart', startPress, { passive: false });
+    btn.addEventListener('touchend', cancelPress);
+    btn.addEventListener('touchcancel', cancelPress);
+  })();
+
+  // Initialize demo-panel highlight to match the default-active card on load
+  document.querySelectorAll('.demo-panel [data-go]').forEach(btn => {
+    btn.classList.toggle('active-screen', btn.dataset.go === 'signin');
+  });
+
+  // ─── Card switching ────────────────────────────
+  function showCard(id) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById('card-' + id);
+    if (target) {
+      target.classList.add('active');
+      // Focus first input for accessibility
+      setTimeout(() => {
+        const firstInput = target.querySelector('input:not([disabled])');
+        if (firstInput) firstInput.focus();
+      }, 280);
+    }
+    // Sync the demo panel "Jump to screen" highlight with the current card.
+    document.querySelectorAll('.demo-panel [data-go]').forEach(btn => {
+      btn.classList.toggle('active-screen', btn.dataset.go === id);
+    });
+  }
+
+  // ─── Banner helpers ────────────────────────────
+  function showBanner(name, msg, kind) {
+    const b = document.querySelector(`[data-banner="${name}"]`);
+    if (!b) return;
+    b.textContent = msg;
+    b.className = 'banner show' + (kind === 'success' ? ' success' : '');
+  }
+  function hideBanner(name) {
+    const b = document.querySelector(`[data-banner="${name}"]`);
+    if (b) b.classList.remove('show');
+  }
+  function hideAllBanners() {
+    document.querySelectorAll('.banner').forEach(b => b.classList.remove('show'));
+  }
+
+  // ─── Field error helpers ───────────────────────
+  function setFieldError(fieldId, msg) {
+    const f = document.getElementById(fieldId);
+    f.classList.add('error');
+    f.querySelector('.error-msg').textContent = msg;
+    f.querySelector('input').setAttribute('aria-invalid', 'true');
+  }
+  function clearFieldError(fieldId) {
+    const f = document.getElementById(fieldId);
+    f.classList.remove('error');
+    f.querySelector('.error-msg').textContent = '';
+    f.querySelector('input').setAttribute('aria-invalid', 'false');
+  }
+
+  // ─── SSO sign-in card setup ───────────────────
+  // Provider config used to populate the dynamic SSO sign-in card
+  const PROVIDERS = {
+    google: {
+      name: 'Google',
+      buttonHTML: `
+        <button type="button" class="btn-secondary" data-mock="sso-success">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.5 12.27a10.6 10.6 0 0 0-.16-1.84H12v3.49h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.55c2.08-1.92 3.28-4.74 3.28-7.73z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.99 7.28-2.68l-3.56-2.76c-.98.66-2.24 1.06-3.72 1.06-2.86 0-5.29-1.93-6.15-4.53H2.18v2.84A11 11 0 0 0 12 23z" fill="#34A853"/>
+            <path d="M5.85 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.67-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.07l3.67 2.84C6.71 7.31 9.14 5.38 12 5.38z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>`
+    },
+    apple: {
+      name: 'Apple',
+      buttonHTML: `
+        <button type="button" class="btn-secondary" data-mock="sso-success">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000">
+            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+          </svg>
+          Continue with Apple
+        </button>`
+    },
+    idme: {
+      name: 'ID.me',
+      // ID.me's official sign-in button — full button design baked into the SVG
+      buttonHTML: `
+        <button type="button" class="btn-idme" data-mock="sso-success" aria-label="Continue with ID.me">
+          <img src="idme-button.svg" alt="Continue with ID.me" style="display:block;width:100%;height:auto;max-height:52px;">
+        </button>`
+    },
+  };
+  function showSSOCard(provider, email) {
+    const config = PROVIDERS[provider];
+    if (!config) return;
+    document.getElementById('sso-provider-name').textContent = config.name;
+    document.getElementById('sso-button-slot').innerHTML = config.buttonHTML;
+    showCard('sso');
+  }
+
+  // ─── Mock OAuth card setup ─────────────────────
+  // Provider-specific framing for the simulated redirect step.
+  // Reference: Auth0 Universal Login routes to the IdP's authorize endpoint;
+  // we mimic the visual pattern but never make a network call.
+  const SSO_MOCK_CONFIG = {
+    google: {
+      name: 'Google',
+      url: 'accounts.google.com/o/oauth2/v2/auth',
+      mark: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M22.5 12.27a10.6 10.6 0 0 0-.16-1.84H12v3.49h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.55c2.08-1.92 3.28-4.74 3.28-7.73z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.99 7.28-2.68l-3.56-2.76c-.98.66-2.24 1.06-3.72 1.06-2.86 0-5.29-1.93-6.15-4.53H2.18v2.84A11 11 0 0 0 12 23z" fill="#34A853"/>
+              <path d="M5.85 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.67-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.07l3.67 2.84C6.71 7.31 9.14 5.38 12 5.38z" fill="#EA4335"/>
+            </svg>`,
+    },
+    apple: {
+      name: 'Apple',
+      url: 'appleid.apple.com/auth/authorize',
+      mark: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000" aria-hidden="true">
+              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>`,
+    },
+    idme: {
+      name: 'ID.me',
+      url: 'api.id.me/oauth/authorize',
+      mark: `<img src="idme-button.svg" alt="ID.me" style="object-fit:contain;">`,
+    },
+  };
+  function showMockOAuth(provider, email) {
+    const cfg = SSO_MOCK_CONFIG[provider];
+    if (!cfg) return;
+    document.getElementById('sso-mock-provider').textContent = cfg.name;
+    document.getElementById('sso-mock-url').textContent = cfg.url;
+    document.getElementById('sso-mock-mark').innerHTML = cfg.mark;
+    document.getElementById('sso-mock-email').textContent = email || 'Choose an account to continue';
+    showCard('sso-mock');
+  }
+
+  // ─── Step 1: Email ─────────────────────────────
+  const emailIn = document.getElementById('email');
+  document.getElementById('form-email').addEventListener('submit', (e) => {
+    e.preventDefault();
+    hideAllBanners();
+    const v = emailIn.value.trim();
+    if (!v) return setFieldError('email-field', 'Please enter an email address');
+    clearFieldError('email-field');
+    currentConnection = forcedConnection || getConnection(v);
+    forcedConnection = null;
+
+    // Identifier-first (PRD-spec) routing
+    if (currentConnection === 'password') {
+      document.getElementById('email-readonly-display').textContent = v;
+      showCard('password');
+    } else if (currentConnection === 'google' || currentConnection === 'apple' || currentConnection === 'idme') {
+      showSSOCard(currentConnection, v);
+    } else {
+      // Unrecognized or forced new user → route straight to sign-up
+      suEmail.value = v;
+      showCard('signup');
+    }
+  });
+  emailIn.addEventListener('input', () => {
+    if (document.getElementById('email-field').classList.contains('error') && emailIn.value.trim()) {
+      clearFieldError('email-field');
+    }
+  });
+
+  // ─── Step 2: Password ──────────────────────────
+  // Password user → password screen → success.
+  const passIn = document.getElementById('password');
+  document.getElementById('form-password').addEventListener('submit', (e) => {
+    e.preventDefault();
+    hideAllBanners();
+    const v = passIn.value;
+    if (!v) return setFieldError('password-field', 'Password is required');
+    clearFieldError('password-field');
+    goSuccess(emailIn.value.trim());
+  });
+  passIn.addEventListener('input', () => {
+    if (document.getElementById('password-field').classList.contains('error') && passIn.value) {
+      clearFieldError('password-field');
+    }
+  });
+
+  // ─── Step 3: Sign up ───────────────────────────
+  const suEmail = document.getElementById('signup-email');
+  const suPass  = document.getElementById('signup-password');
+  document.getElementById('form-signup').addEventListener('submit', (e) => {
+    e.preventDefault();
+    hideAllBanners();
+    let bad = false;
+    const ev = suEmail.value.trim();
+    if (!ev) { setFieldError('signup-email-field', 'Please enter an email address'); bad = true; }
+    else clearFieldError('signup-email-field');
+    const pv = suPass.value;
+    if (!pv) { setFieldError('signup-password-field', 'Password is required'); bad = true; }
+    else clearFieldError('signup-password-field');
+    if (bad) return;
+    goSuccess(suEmail.value.trim(), true);
+  });
+  suEmail.addEventListener('input', () => {
+    if (document.getElementById('signup-email-field').classList.contains('error') && suEmail.value.trim()) clearFieldError('signup-email-field');
+  });
+  suPass.addEventListener('input', () => {
+    if (document.getElementById('signup-password-field').classList.contains('error') && suPass.value) clearFieldError('signup-password-field');
+  });
+
+  // ─── Show/hide password toggles ────────────────
+  function wireToggle(toggleId, inputId) {
+    document.getElementById(toggleId).addEventListener('click', (e) => {
+      const inp = document.getElementById(inputId);
+      const newType = inp.type === 'password' ? 'text' : 'password';
+      inp.type = newType;
+      e.currentTarget.setAttribute('aria-checked', newType === 'text' ? 'true' : 'false');
+      e.currentTarget.setAttribute('aria-label', newType === 'text' ? 'Hide password' : 'Show password');
+    });
+  }
+  wireToggle('password-toggle', 'password');
+  wireToggle('signup-password-toggle', 'signup-password');
+
+  // ─── Mock action handlers ──────────────────────
+  document.body.addEventListener('click', (e) => {
+    // Action buttons (e.g., "Create an account with this email")
+    const actionTarget = e.target.closest('[data-action]');
+    if (actionTarget) {
+      e.preventDefault();
+      if (actionTarget.dataset.action === 'signup-with-email') {
+        const email = emailIn.value.trim();
+        suEmail.value = email;
+        showCard('signup');
+      }
+      return;
+    }
+    const goTarget = e.target.closest('[data-go]');
+    if (goTarget) {
+      e.preventDefault();
+      hideAllBanners();
+      showCard(goTarget.dataset.go);
+      return;
+    }
+    const mockTarget = e.target.closest('[data-mock]');
+    if (mockTarget) {
+      e.preventDefault();
+      const which = mockTarget.dataset.mock;
+      // SSO providers → route to the Auth0-style mock OAuth screen.
+      // Email is taken from whichever input has the user's identifier.
+      if (which === 'google' || which === 'apple' || which === 'idme') {
+        const emailHint = (emailIn && emailIn.value.trim())
+                      || (suEmail && suEmail.value.trim())
+                      || '';
+        ssoFromSignup = document.getElementById('card-signup').classList.contains('active');
+        showMockOAuth(which, emailHint);
+        return;
+      }
+      // Dynamic SSO card's provider button — already knows the email
+      if (which === 'sso-success') {
+        showMockOAuth(currentConnection || 'google',
+                      (emailIn && emailIn.value.trim()) || '');
+        return;
+      }
+      // "Allow" on the mock OAuth card → simulated successful sign-in
+      if (which === 'sso-approve') {
+        goSuccess((emailIn && emailIn.value.trim()) || (suEmail && suEmail.value.trim()) || '', ssoFromSignup);
+        ssoFromSignup = false;
+        return;
+      }
+      // Forgot-password link is visible-only per PRD test plan
+      const labels = {
+        forgot: 'Mock — would go to password reset.',
+      };
+      window.alert(labels[which] || 'Mock action');
+      return;
+    }
+    const trigTarget = e.target.closest('[data-trigger]');
+    if (trigTarget) {
+      e.preventDefault();
+      // Highlight the triggered button and clear others in the same section
+      document.querySelectorAll('.demo-panel [data-trigger]').forEach(b => b.classList.remove('active-screen'));
+      trigTarget.classList.add('active-screen');
+      runScenario(trigTarget.dataset.trigger);
+      return;
+    }
+  });
+
+  // ─── Demo scenarios ────────────────────────────
+  function runScenario(name) {
+    hideAllBanners();
+
+    // PRD-spec recognition flows — jump directly to destination screen,
+    // no email auto-fill so participants start with a clean slate.
+    const flowTargets = {
+      'flow-password-user': () => {
+        forcedConnection = 'password';
+        emailIn.value = '';
+        showCard('signin');
+      },
+      'flow-google-user': () => {
+        forcedConnection = 'google';
+        emailIn.value = '';
+        showCard('signin');
+      },
+      'flow-apple-user': () => {
+        forcedConnection = 'apple';
+        emailIn.value = '';
+        showCard('signin');
+      },
+      'flow-idme-user': () => {
+        forcedConnection = 'idme';
+        emailIn.value = '';
+        showCard('signin');
+      },
+      'flow-unrecognized': () => {
+        emailIn.value = '';
+        showCard('signin');
+      },
+    };
+    if (name === 'demo-success') {
+      goSuccess('demo@inquirer.com');
+      return;
+    }
+    if (flowTargets[name]) {
+      hideAllBanners();
+      emailIn.value = '';
+      flowTargets[name]();
+      return;
+    }
+
+    // Direct jumps to the mock OAuth card per provider
+    const mockOAuthEmails = {
+      'mock-google': 'google-user@test.com',
+      'mock-apple':  'apple-user@test.com',
+      'mock-idme':   'idme-user@test.com',
+    };
+    if (mockOAuthEmails[name]) {
+      const provider = name.replace('mock-', '');
+      showMockOAuth(provider, mockOAuthEmails[name]);
+      return;
+    }
+
+    if (name === 'empty-email') {
+      showCard('signin');
+      setTimeout(() => {
+        emailIn.value = '';
+        hideAllBanners();
+        setFieldError('email-field', 'Please enter an email address');
+      }, 150);
+    } else if (name === 'empty-password') {
+      showCard('password');
+      setTimeout(() => {
+        passIn.value = '';
+        document.getElementById('email-readonly-display').textContent = 'recognized-user@test.com';
+        hideAllBanners();
+        setFieldError('password-field', 'Password is required');
+      }, 150);
+    } else if (name === 'wrong-password') {
+      showCard('password');
+      setTimeout(() => {
+        document.getElementById('email-readonly-display').textContent = 'recognized-user@test.com';
+        passIn.value = 'wrongpassword123';
+        setFieldError('password-field', 'Wrong password. Try again or reset it below.');
+        passIn.focus();
+      }, 150);
+    } else if (name === 'reset') {
+      ['email-field', 'password-field', 'signup-email-field', 'signup-password-field']
+        .forEach(clearFieldError);
+      emailIn.value = '';
+      passIn.value = '';
+      suEmail.value = '';
+      suPass.value = '';
+      showCard('signin');
+    }
+  }
+</script>
+</body>
+</html>
