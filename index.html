@@ -523,6 +523,40 @@
     font-size: 10px; color: #6b7280;
     font-family: monospace; letter-spacing: 0;
   }
+  /* ─── Copy icon on scenario buttons ─── */
+  .scenario-wrap {
+    position: relative; margin: 2px 0;
+  }
+  .scenario-wrap button[data-trigger] {
+    width: 100%; padding-right: 34px; margin: 0;
+  }
+  .demo-panel .copy-btn {
+    position: absolute !important;
+    top: 8px !important; right: 8px !important;
+    width: 22px !important; height: 22px !important;
+    min-width: 0 !important; min-height: 0 !important;
+    padding: 4px !important; margin: 0 !important;
+    background: transparent !important;
+    border: none !important; border-radius: 4px !important;
+    cursor: pointer !important;
+    display: flex !important; flex-direction: row !important;
+    align-items: center !important; justify-content: center !important;
+    transition: background 0.15s !important;
+    z-index: 2;
+  }
+  .demo-panel .copy-btn:hover { background: rgba(0,0,0,0.1) !important; }
+  .demo-panel .copy-btn img { width: 14px; height: 14px; display: block; opacity: 0.45; }
+  .demo-panel .copy-btn:hover img { opacity: 0.8; }
+  .scenario-wrap button.active-screen ~ .copy-btn img { opacity: 0.7; filter: invert(1); }
+  .scenario-wrap button.active-screen ~ .copy-btn:hover { background: rgba(255,255,255,0.2) !important; }
+  .copy-toast {
+    background: #005836; color: #fff;
+    padding: 8px 12px;
+    font-size: 11px; text-align: center;
+    display: none;
+    animation: bannerIn 0.2s ease;
+  }
+  .copy-toast.show { display: block; }
 
 
   @media (max-width: 600px) {
@@ -562,7 +596,7 @@
 
   <!-- ─── Card 1: Sign in (email) ─── -->
   <section class="card active" id="card-signin" aria-label="Sign in">
-    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <img class="logo" src="inquirer-nameplate.svg" alt="The Philadelphia Inquirer">
     <h1>Sign in or create an account</h1>
 
     <div class="banner" data-banner="signin" role="alert" aria-live="polite"></div>
@@ -607,7 +641,7 @@
 
   <!-- ─── Card 2: Password ─── -->
   <section class="card" id="card-password" aria-label="Enter password">
-    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <img class="logo" src="inquirer-nameplate.svg" alt="The Philadelphia Inquirer">
     <h1>Enter your password to log in</h1>
 
     <div class="banner" data-banner="password" role="alert" aria-live="polite"></div>
@@ -647,7 +681,7 @@
 
   <!-- ─── Card: SSO sign-in (dynamic per provider) ─── -->
   <section class="card" id="card-sso" aria-label="Sign in with provider">
-    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <img class="logo" src="inquirer-nameplate.svg" alt="The Philadelphia Inquirer">
     <h1 id="sso-heading">Welcome back</h1>
     <p class="subhead">
       Your account is linked to <strong id="sso-provider-name">[Provider]</strong>. Continue below to sign in to The Philadelphia Inquirer.
@@ -663,7 +697,7 @@
        provider's consent screen, then back via the callback URL. This card
        simulates that step — visible-only, no real OAuth call. -->
   <section class="card" id="card-sso-mock" aria-label="Provider sign-in (mock)">
-    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <img class="logo" src="inquirer-nameplate.svg" alt="The Philadelphia Inquirer">
     <div class="sso-mock-frame">
       <div class="url-bar">
         <svg class="lock" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -690,7 +724,7 @@
 
   <!-- ─── Card 3: Create account (brand new user) ─── -->
   <section class="card" id="card-signup" aria-label="Create account">
-    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <img class="logo" src="inquirer-nameplate.svg" alt="The Philadelphia Inquirer">
     <h1>Sign Up for The Philadelphia Inquirer</h1>
 
     <div class="banner" data-banner="signup" role="alert" aria-live="polite"></div>
@@ -755,7 +789,7 @@
 
   <!-- ─── Card 4: Success ─── -->
   <section class="card success-card" id="card-success" aria-label="Signed in">
-    <img class="logo" src="https://media.inquirer.com/assets/inquirer-logo-official-long.svg" alt="The Philadelphia Inquirer" onerror="this.style.display='none'">
+    <img class="logo" src="inquirer-nameplate.svg" alt="The Philadelphia Inquirer">
     <div class="success-icon">✓</div>
     <h2 id="success-msg">You're signed in</h2>
   </section>
@@ -772,29 +806,45 @@
 <!-- ─── Demo panel ──────────────────────────────── -->
 <details class="demo-panel" id="demo-panel">
   <summary>Demo controls</summary>
+  <div class="copy-toast" id="copy-toast"></div>
   <div class="body">
 
     <h4>Test scenarios</h4>
-    <button data-trigger="flow-unrecognized">
-      <span class="btn-title">1. Brand new user</span>
-      <span class="btn-desc">Use: <strong>unrecognized-email@test.com</strong><br>Starts at email screen, routes to sign-up</span>
-    </button>
-    <button data-trigger="flow-password-user">
-      <span class="btn-title">2. Returning user — password</span>
-      <span class="btn-desc">Use: <strong>recognized-user@test.com</strong><br>Email → password two-step flow</span>
-    </button>
-    <button data-trigger="flow-google-user">
-      <span class="btn-title">3. Returning user — Google</span>
-      <span class="btn-desc">Use: <strong>google-user@test.com</strong><br>Starts at email screen. In real flow, user would enter Google credentials if not already logged in.</span>
-    </button>
-    <button data-trigger="flow-apple-user">
-      <span class="btn-title">4. Returning user — Apple</span>
-      <span class="btn-desc">Use: <strong>apple-user@test.com</strong><br>Starts at email screen. In real flow, user would enter Apple credentials if not already logged in.</span>
-    </button>
-    <button data-trigger="flow-idme-user">
-      <span class="btn-title">5. Returning user — ID.me</span>
-      <span class="btn-desc">Use: <strong>idme-user@test.com</strong><br>Starts at email screen. In real flow, user would enter ID.me credentials if not already logged in.</span>
-    </button>
+    <div class="scenario-wrap">
+      <button data-trigger="flow-unrecognized">
+        <span class="btn-title">1. Brand new user</span>
+        <span class="btn-desc">Use: <strong>unrecognized-email@test.com</strong><br>Starts at email screen, routes to sign-up</span>
+      </button>
+      <button type="button" class="copy-btn" data-copy="unrecognized-email@test.com" aria-label="Copy email"><img src="copy-icon.svg" alt="" width="14" height="14" style="opacity:0.5;display:block;"></button>
+    </div>
+    <div class="scenario-wrap">
+      <button data-trigger="flow-password-user">
+        <span class="btn-title">2. Returning user — password</span>
+        <span class="btn-desc">Use: <strong>recognized-user@test.com</strong><br>Email → password two-step flow</span>
+      </button>
+      <button type="button" class="copy-btn" data-copy="recognized-user@test.com" aria-label="Copy email"><img src="copy-icon.svg" alt="" width="14" height="14" style="opacity:0.5;display:block;"></button>
+    </div>
+    <div class="scenario-wrap">
+      <button data-trigger="flow-google-user">
+        <span class="btn-title">3. Returning user — Google</span>
+        <span class="btn-desc">Use: <strong>google-user@test.com</strong><br>Starts at email screen. In real flow, user would enter Google credentials if not already logged in.</span>
+      </button>
+      <button type="button" class="copy-btn" data-copy="google-user@test.com" aria-label="Copy email"><img src="copy-icon.svg" alt="" width="14" height="14" style="opacity:0.5;display:block;"></button>
+    </div>
+    <div class="scenario-wrap">
+      <button data-trigger="flow-apple-user">
+        <span class="btn-title">4. Returning user — Apple</span>
+        <span class="btn-desc">Use: <strong>apple-user@test.com</strong><br>Starts at email screen. In real flow, user would enter Apple credentials if not already logged in.</span>
+      </button>
+      <button type="button" class="copy-btn" data-copy="apple-user@test.com" aria-label="Copy email"><img src="copy-icon.svg" alt="" width="14" height="14" style="opacity:0.5;display:block;"></button>
+    </div>
+    <div class="scenario-wrap">
+      <button data-trigger="flow-idme-user">
+        <span class="btn-title">5. Returning user — ID.me</span>
+        <span class="btn-desc">Use: <strong>idme-user@test.com</strong><br>Starts at email screen. In real flow, user would enter ID.me credentials if not already logged in.</span>
+      </button>
+      <button type="button" class="copy-btn" data-copy="idme-user@test.com" aria-label="Copy email"><img src="copy-icon.svg" alt="" width="14" height="14" style="opacity:0.5;display:block;"></button>
+    </div>
 
     <h4>Error states</h4>
     <button data-trigger="empty-email">
@@ -1135,6 +1185,32 @@
   }
   wireToggle('password-toggle', 'password');
   wireToggle('signup-password-toggle', 'signup-password');
+
+  // ─── Copy email handler ────────────────────────
+  let copyToastTimer = null;
+  document.body.addEventListener('click', (e) => {
+    const copyBtn = e.target.closest('[data-copy]');
+    if (!copyBtn) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const email = copyBtn.dataset.copy;
+    const toast = document.getElementById('copy-toast');
+    // Copy to clipboard
+    const ta = document.createElement('textarea');
+    ta.value = email;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(err) {}
+    document.body.removeChild(ta);
+    // Show toast
+    if (toast) {
+      toast.textContent = email + ' copied';
+      toast.classList.add('show');
+      if (copyToastTimer) clearTimeout(copyToastTimer);
+      copyToastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  }, true);
 
   // ─── Mock action handlers ──────────────────────
   document.body.addEventListener('click', (e) => {
